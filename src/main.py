@@ -1,6 +1,6 @@
 import os
 import sys
-# DON'T CHANGE THIS !!!
+# DON'T CHANGE THIS !!! / NÃO ALTERE ISSO !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, send_from_directory
@@ -11,13 +11,13 @@ from src.routes.sms import sms_bp
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = 'sms_service_secret_key_2025'
 
-# Enable CORS for all routes
+# Enable CORS for all routes / Habilita CORS para todas as rotas
 CORS(app, origins="*")
 
-# Register SMS blueprint
+# Register SMS blueprint / Registra blueprint SMS
 app.register_blueprint(sms_bp, url_prefix='/api')
 
-# Database configuration
+# Database configuration / Configuração do banco de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
@@ -27,6 +27,10 @@ with app.app_context():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
+    """
+    Serve static files and handle SPA routing
+    Serve arquivos estáticos e gerencia roteamento SPA
+    """
     static_folder_path = app.static_folder
     if static_folder_path is None:
             return "Static folder not configured", 404
@@ -42,4 +46,6 @@ def serve(path):
 
 
 if __name__ == '__main__':
+    # Run the application / Executa a aplicação
     app.run(host='0.0.0.0', port=5000, debug=True)
+

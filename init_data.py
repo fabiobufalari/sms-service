@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-SMS Microservice Initialization Script
+SMS Microservice Initialization Script / Script de Inicialização do Microserviço SMS
 This script initializes the SMS microservice with sample data for testing
+Este script inicializa o microserviço SMS com dados de exemplo para testes
 """
 
 import os
@@ -12,16 +13,19 @@ from src.main import app
 from src.models.sms import db, Contact, ContactGroup, SmsTemplate
 
 def init_sample_data():
-    """Initialize the database with sample data for testing"""
+    """
+    Initialize the database with sample data for testing
+    Inicializa o banco de dados com dados de exemplo para testes
+    """
     
     with app.app_context():
-        # Clear existing data
+        # Clear existing data / Limpa dados existentes
         db.drop_all()
         db.create_all()
         
         print("Creating sample contacts...")
         
-        # Create sample contacts
+        # Create sample contacts / Cria contatos de exemplo
         contacts = [
             Contact(
                 name="Fabio Bufalari",
@@ -73,7 +77,7 @@ def init_sample_data():
         
         print("Creating sample groups...")
         
-        # Create sample groups
+        # Create sample groups / Cria grupos de exemplo
         groups = [
             ContactGroup(
                 name="Field Team",
@@ -100,25 +104,25 @@ def init_sample_data():
         
         print("Assigning contacts to groups...")
         
-        # Assign contacts to groups
+        # Assign contacts to groups / Atribui contatos aos grupos
         field_team = ContactGroup.query.filter_by(name="Field Team").first()
         vip_clients = ContactGroup.query.filter_by(name="VIP Clients").first()
         project_managers = ContactGroup.query.filter_by(name="Project Managers").first()
         
-        # Add employees to field team
+        # Add employees to field team / Adiciona funcionários ao time de campo
         fabio = Contact.query.filter_by(name="Fabio Bufalari").first()
         maria = Contact.query.filter_by(name="Maria Garcia").first()
         ana = Contact.query.filter_by(name="Ana Silva").first()
         
         field_team.contacts.extend([fabio, maria, ana])
         
-        # Add clients to VIP clients
+        # Add clients to VIP clients / Adiciona clientes aos clientes VIP
         john = Contact.query.filter_by(name="John Smith").first()
         robert = Contact.query.filter_by(name="Robert Johnson").first()
         
         vip_clients.contacts.extend([john, robert])
         
-        # Add project managers (mixed group)
+        # Add project managers (mixed group) / Adiciona gerentes de projeto (grupo misto)
         project_managers.contacts.extend([john, ana])  # John (client PM) and Ana (employee PM)
         
         db.session.commit()
@@ -126,7 +130,7 @@ def init_sample_data():
         
         print("Creating SMS templates...")
         
-        # Create sample SMS templates
+        # Create sample SMS templates / Cria templates de SMS de exemplo
         templates = [
             SmsTemplate(
                 name="Weather Alert",

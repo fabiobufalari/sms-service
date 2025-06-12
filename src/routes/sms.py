@@ -7,18 +7,21 @@ sms_service = SmsService()
 
 @sms_bp.route('/sms/send', methods=['POST'])
 def send_sms():
-    """Send a single SMS message"""
+    """
+    Send a single SMS message
+    Envia uma única mensagem SMS
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         if not data.get('to'):
             return jsonify({'success': False, 'error': 'Phone number (to) is required'}), 400
         
         if not data.get('message'):
             return jsonify({'success': False, 'error': 'Message content is required'}), 400
         
-        # Send SMS
+        # Send SMS / Envia SMS
         result = sms_service.send_sms(
             to_number=data['to'],
             message=data['message'],
@@ -33,18 +36,21 @@ def send_sms():
 
 @sms_bp.route('/sms/send/bulk', methods=['POST'])
 def send_bulk_sms():
-    """Send SMS to multiple phone numbers"""
+    """
+    Send SMS to multiple phone numbers
+    Envia SMS para múltiplos números de telefone
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         if not data.get('to') or not isinstance(data['to'], list):
             return jsonify({'success': False, 'error': 'Phone numbers list (to) is required'}), 400
         
         if not data.get('message'):
             return jsonify({'success': False, 'error': 'Message content is required'}), 400
         
-        # Send bulk SMS
+        # Send bulk SMS / Envia SMS em massa
         result = sms_service.send_bulk_sms(
             phone_numbers=data['to'],
             message=data['message'],
@@ -59,15 +65,18 @@ def send_bulk_sms():
 
 @sms_bp.route('/sms/send/group/<int:group_id>', methods=['POST'])
 def send_group_sms(group_id):
-    """Send SMS to all contacts in a group"""
+    """
+    Send SMS to all contacts in a group
+    Envia SMS para todos os contatos de um grupo
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         if not data.get('message'):
             return jsonify({'success': False, 'error': 'Message content is required'}), 400
         
-        # Send group SMS
+        # Send group SMS / Envia SMS para grupo
         result = sms_service.send_group_sms(
             group_id=group_id,
             message=data['message'],
@@ -82,14 +91,17 @@ def send_group_sms(group_id):
 
 @sms_bp.route('/sms/history', methods=['GET'])
 def get_sms_history():
-    """Get SMS message history"""
+    """
+    Get SMS message history
+    Obtém histórico de mensagens SMS
+    """
     try:
-        # Get query parameters
+        # Get query parameters / Obtém parâmetros de consulta
         limit = int(request.args.get('limit', 100))
         offset = int(request.args.get('offset', 0))
         contact_type = request.args.get('contact_type')
         
-        # Get message history
+        # Get message history / Obtém histórico de mensagens
         result = sms_service.get_message_history(
             limit=limit,
             offset=offset,
@@ -104,7 +116,10 @@ def get_sms_history():
 
 @sms_bp.route('/sms/status/<int:message_id>', methods=['GET'])
 def get_message_status(message_id):
-    """Get the status of a specific message"""
+    """
+    Get the status of a specific message
+    Obtém o status de uma mensagem específica
+    """
     try:
         result = sms_service.get_message_status(message_id)
         
@@ -114,11 +129,14 @@ def get_message_status(message_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Contact management endpoints
+# Contact management endpoints / Endpoints de gerenciamento de contatos
 
 @sms_bp.route('/contacts', methods=['GET'])
 def get_contacts():
-    """Get all contacts"""
+    """
+    Get all contacts
+    Obtém todos os contatos
+    """
     try:
         contact_type = request.args.get('type')  # client, employee
         active_only = request.args.get('active', 'true').lower() == 'true'
@@ -143,22 +161,26 @@ def get_contacts():
 
 @sms_bp.route('/contacts', methods=['POST'])
 def create_contact():
-    """Create a new contact"""
+    """
+    Create a new contact
+    Cria um novo contato
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         required_fields = ['name', 'phone_number', 'contact_type']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'success': False, 'error': f'{field} is required'}), 400
         
         # Check if contact with this phone number already exists
+        # Verifica se contato com este número já existe
         existing_contact = Contact.query.filter_by(phone_number=data['phone_number']).first()
         if existing_contact:
             return jsonify({'success': False, 'error': 'Contact with this phone number already exists'}), 400
         
-        # Create new contact
+        # Create new contact / Cria novo contato
         contact = Contact(
             name=data['name'],
             phone_number=data['phone_number'],
@@ -181,12 +203,15 @@ def create_contact():
 
 @sms_bp.route('/contacts/<int:contact_id>', methods=['PUT'])
 def update_contact(contact_id):
-    """Update an existing contact"""
+    """
+    Update an existing contact
+    Atualiza um contato existente
+    """
     try:
         contact = Contact.query.get_or_404(contact_id)
         data = request.json
         
-        # Update fields
+        # Update fields / Atualiza campos
         contact.name = data.get('name', contact.name)
         contact.phone_number = data.get('phone_number', contact.phone_number)
         contact.contact_type = data.get('contact_type', contact.contact_type)
@@ -207,7 +232,10 @@ def update_contact(contact_id):
 
 @sms_bp.route('/contacts/<int:contact_id>', methods=['DELETE'])
 def delete_contact(contact_id):
-    """Delete a contact (soft delete by setting active=False)"""
+    """
+    Delete a contact (soft delete by setting active=False)
+    Exclui um contato (exclusão suave definindo active=False)
+    """
     try:
         contact = Contact.query.get_or_404(contact_id)
         contact.active = False
@@ -218,11 +246,14 @@ def delete_contact(contact_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# Contact group management endpoints
+# Contact group management endpoints / Endpoints de gerenciamento de grupos de contatos
 
 @sms_bp.route('/groups', methods=['GET'])
 def get_groups():
-    """Get all contact groups"""
+    """
+    Get all contact groups
+    Obtém todos os grupos de contatos
+    """
     try:
         group_type = request.args.get('type')  # client_group, employee_group, mixed
         active_only = request.args.get('active', 'true').lower() == 'true'
@@ -247,17 +278,20 @@ def get_groups():
 
 @sms_bp.route('/groups', methods=['POST'])
 def create_group():
-    """Create a new contact group"""
+    """
+    Create a new contact group
+    Cria um novo grupo de contatos
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         required_fields = ['name', 'group_type']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'success': False, 'error': f'{field} is required'}), 400
         
-        # Create new group
+        # Create new group / Cria novo grupo
         group = ContactGroup(
             name=data['name'],
             description=data.get('description'),
@@ -277,7 +311,10 @@ def create_group():
 
 @sms_bp.route('/groups/<int:group_id>/members', methods=['POST'])
 def add_contact_to_group(group_id):
-    """Add a contact to a group"""
+    """
+    Add a contact to a group
+    Adiciona um contato a um grupo
+    """
     try:
         data = request.json
         contact_id = data.get('contact_id')
@@ -288,11 +325,11 @@ def add_contact_to_group(group_id):
         group = ContactGroup.query.get_or_404(group_id)
         contact = Contact.query.get_or_404(contact_id)
         
-        # Check if contact is already in the group
+        # Check if contact is already in the group / Verifica se contato já está no grupo
         if contact in group.contacts:
             return jsonify({'success': False, 'error': 'Contact is already in this group'}), 400
         
-        # Add contact to group
+        # Add contact to group / Adiciona contato ao grupo
         group.contacts.append(contact)
         db.session.commit()
         
@@ -306,16 +343,19 @@ def add_contact_to_group(group_id):
 
 @sms_bp.route('/groups/<int:group_id>/members/<int:contact_id>', methods=['DELETE'])
 def remove_contact_from_group(group_id, contact_id):
-    """Remove a contact from a group"""
+    """
+    Remove a contact from a group
+    Remove um contato de um grupo
+    """
     try:
         group = ContactGroup.query.get_or_404(group_id)
         contact = Contact.query.get_or_404(contact_id)
         
-        # Check if contact is in the group
+        # Check if contact is in the group / Verifica se contato está no grupo
         if contact not in group.contacts:
             return jsonify({'success': False, 'error': 'Contact is not in this group'}), 404
         
-        # Remove contact from group
+        # Remove contact from group / Remove contato do grupo
         group.contacts.remove(contact)
         db.session.commit()
         
@@ -327,11 +367,14 @@ def remove_contact_from_group(group_id, contact_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# SMS Template management endpoints
+# SMS Template management endpoints / Endpoints de gerenciamento de templates SMS
 
 @sms_bp.route('/templates', methods=['GET'])
 def get_templates():
-    """Get all SMS templates"""
+    """
+    Get all SMS templates
+    Obtém todos os templates SMS
+    """
     try:
         template_type = request.args.get('type')
         active_only = request.args.get('active', 'true').lower() == 'true'
@@ -356,17 +399,20 @@ def get_templates():
 
 @sms_bp.route('/templates', methods=['POST'])
 def create_template():
-    """Create a new SMS template"""
+    """
+    Create a new SMS template
+    Cria um novo template SMS
+    """
     try:
         data = request.json
         
-        # Validate required fields
+        # Validate required fields / Valida campos obrigatórios
         required_fields = ['name', 'template']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({'success': False, 'error': f'{field} is required'}), 400
         
-        # Create new template
+        # Create new template / Cria novo template
         template = SmsTemplate(
             name=data['name'],
             template=data['template'],
