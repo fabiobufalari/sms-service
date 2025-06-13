@@ -5,6 +5,72 @@ from src.services.sms_service import SmsService
 sms_bp = Blueprint('sms', __name__)
 sms_service = SmsService()
 
+@sms_bp.route('/sms/health', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint for SMS service
+    Endpoint de verificação de saúde do serviço SMS
+    """
+    try:
+        # Check database connection / Verifica conexão com banco de dados
+        db.session.execute('SELECT 1')
+        
+        return jsonify({
+            'service': 'sms-service',
+            'status': 'healthy',
+            'database': 'connected',
+            'timestamp': str(db.func.now())
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'service': 'sms-service',
+            'status': 'unhealthy',
+            'database': 'disconnected',
+            'error': str(e)
+        }), 503
+
+@sms_bp.route('/sms/status', methods=['GET'])
+def service_status():
+    """
+    Service status endpoint with detailed information
+    Endpoint de status do serviço com informações detalhadas
+    """
+    try:
+        # Get service statistics / Obtém estatísticas do serviço
+        total_messages = SmsMessage.query.count()
+        total_contacts = Contact.query.filter_by(active=True).count()
+        total_groups = ContactGroup.query.filter_by(active=True).count()
+        total_templates = SmsTemplate.query.filter_by(active=True).count()
+        
+        return jsonify({
+            'service': 'sms-service',
+            'status': 'operational',
+            'version': '1.0.0',
+            'statistics': {
+                'total_messages': total_messages,
+                'total_contacts': total_contacts,
+                'total_groups': total_groups,
+                'total_templates': total_templates
+            },
+            'endpoints': {
+                'send_sms': '/api/sms/send',
+                'bulk_sms': '/api/sms/send/bulk',
+                'group_sms': '/api/sms/send/group/<group_id>',
+                'history': '/api/sms/history',
+                'contacts': '/api/contacts',
+                'groups': '/api/groups',
+                'templates': '/api/templates'
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'service': 'sms-service',
+            'status': 'error',
+            'error': str(e)
+        }), 500
+
 @sms_bp.route('/sms/send', methods=['POST'])
 def send_sms():
     """
